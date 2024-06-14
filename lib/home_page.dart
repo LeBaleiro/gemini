@@ -1,6 +1,7 @@
 import 'dart:io';
 
 import 'package:flutter/material.dart';
+import 'package:google_generative_ai/google_generative_ai.dart';
 import 'package:image_picker/image_picker.dart';
 
 class HomePage extends StatefulWidget {
@@ -23,9 +24,28 @@ class _HomePageState extends State<HomePage> {
     setState(() => imagens = result);
   }
 
-  Future<void> enviarTexto(String text) async {}
+  late final model = GenerativeModel(
+    model: 'gemini-1.5-flash',
+    apiKey: const String.fromEnvironment('API_KEY'),
+  );
 
-  Future<void> enviarImagens(String text) async {}
+  Future<void> enviarTexto(String text) async {
+    final content = [Content.text(text)];
+    final response = await model.generateContent(content);
+    setState(() => modelResponse = response.text);
+  }
+
+  Future<void> enviarImagens(String text) async {
+    final prompt = TextPart(text);
+    if (imagens == null) return;
+    final fileImages =
+        await imagens!.map((e) => File(e.path).readAsBytes()).wait;
+    final imageParts = fileImages.map((e) => DataPart('image/png', e));
+    final response = await model.generateContent([
+      Content.multi([prompt, ...imageParts])
+    ]);
+    setState(() => modelResponse = response.text);
+  }
 
   @override
   Widget build(BuildContext context) {
