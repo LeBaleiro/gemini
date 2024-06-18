@@ -1,6 +1,7 @@
-import 'dart:io';
-
 import 'package:flutter/material.dart';
+import 'package:gemini/home_controller.dart';
+import 'package:gemini/home_states.dart';
+import 'package:gemini/image_controller.dart';
 import 'package:google_generative_ai/google_generative_ai.dart';
 import 'package:image_picker/image_picker.dart';
 
@@ -12,40 +13,16 @@ class HomePage extends StatefulWidget {
 }
 
 class _HomePageState extends State<HomePage> {
-  String? modelResponse;
-
-  late final controller = TextEditingController();
-
-  late final imagePicker = ImagePicker();
-  List<XFile>? imagens;
-
-  Future<void> escolherImagens() async {
-    final result = await imagePicker.pickMultiImage();
-    setState(() => imagens = result);
-  }
+  late final textController = TextEditingController();
 
   late final model = GenerativeModel(
     model: 'gemini-1.5-flash',
     apiKey: const String.fromEnvironment('API_KEY'),
   );
+  late final imagePicker = ImagePicker();
 
-  Future<void> enviarTexto(String text) async {
-    final content = [Content.text(text)];
-    final response = await model.generateContent(content);
-    setState(() => modelResponse = response.text);
-  }
-
-  Future<void> enviarImagens(String text) async {
-    final prompt = TextPart(text);
-    if (imagens == null) return;
-    final fileImages =
-        await imagens!.map((e) => File(e.path).readAsBytes()).wait;
-    final imageParts = fileImages.map((e) => DataPart('image/png', e));
-    final response = await model.generateContent([
-      Content.multi([prompt, ...imageParts])
-    ]);
-    setState(() => modelResponse = response.text);
-  }
+  late final homeController = HomeController(model);
+  late final imageController = ImageController(imagePicker);
 
   @override
   Widget build(BuildContext context) {
@@ -56,38 +33,48 @@ class _HomePageState extends State<HomePage> {
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              TextField(controller: controller),
+              TextField(controller: textController),
               const SizedBox(height: 10),
               TextButton(
-                onPressed: () => enviarTexto(controller.text),
+                onPressed: () =>
+                    homeController.enviarTexto(textController.text),
                 child: const Text('Enviar texto'),
               ),
               const SizedBox(height: 10),
               TextButton(
-                onPressed: escolherImagens,
+                onPressed: imageController.escolherImagens,
                 child: const Text('Escolher imagens'),
               ),
               const SizedBox(height: 10),
-              if (imagens != null)
-                Row(
+              ValueListenableBuilder(
+                valueListenable: imageController,
+                builder: (context, value, child) => Row(
                   mainAxisAlignment: MainAxisAlignment.center,
-                  children: imagens!
-                      .map(
-                        (e) => Image.file(
-                          File(e.path),
-                          height: 200,
-                          fit: BoxFit.fitHeight,
-                        ),
-                      )
-                      .toList(),
+                  children: value.map((e) {
+                    return Image.memory(e, height: 200, fit: BoxFit.fitHeight);
+                  }).toList(),
                 ),
+              ),
               const SizedBox(height: 10),
               TextButton(
-                onPressed: () => enviarImagens(controller.text),
+                onPressed: () => homeController.enviarImagens(
+                  textController.text,
+                  imageController.value,
+                ),
                 child: const Text('Enviar imagens'),
               ),
               const SizedBox(height: 10),
-              Text(modelResponse ?? 'Sem resposta'),
+              ValueListenableBuilder<HomeState>(
+                  valueListenable: homeController,
+                  builder: (context, value, child) {
+                    return switch (value) {
+                      HomeSuccessState success =>
+                        Text(success.response ?? 'Sem resposta'),
+                      HomeLoadingState _ => const CircularProgressIndicator(),
+                      HomeInitialState _ => const SizedBox.shrink(),
+                      HomeErrorState error => Text(error.message),
+                    };
+                  }),
             ],
           ),
         ),
