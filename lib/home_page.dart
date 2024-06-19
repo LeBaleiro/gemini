@@ -21,8 +21,10 @@ class _HomePageState extends State<HomePage> {
   );
   late final imagePicker = ImagePicker();
 
-  late final homeController =
-      HomeController(RequestStore(model), ImageStore(imagePicker));
+  late final homeController = HomeController(
+    RequestStore(model),
+    ImageStore(imagePicker),
+  );
 
   @override
   Widget build(BuildContext context) {
@@ -69,16 +71,17 @@ class _HomePageState extends State<HomePage> {
               ),
               const SizedBox(height: 10),
               ValueListenableBuilder<HomeState>(
-                  valueListenable: homeController,
-                  builder: (context, value, child) {
-                    return switch (value) {
-                      HomeSuccessState success =>
-                        Text(success.response ?? 'Sem resposta'),
-                      HomeLoadingState _ => const CircularProgressIndicator(),
-                      HomeInitialState _ => const SizedBox.shrink(),
-                      HomeErrorState error => Text(error.message),
-                    };
-                  }),
+                valueListenable: homeController,
+                builder: (context, value, child) {
+                  return switch (value) {
+                    HomeSuccessState success =>
+                      Text(success.response ?? 'Sem resposta'),
+                    HomeLoadingState _ => const CircularProgressIndicator(),
+                    HomeInitialState _ => const SizedBox.shrink(),
+                    HomeErrorState error => Text(error.message),
+                  };
+                },
+              ),
             ],
           ),
         ),
