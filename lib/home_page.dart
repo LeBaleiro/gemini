@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:gemini/home_controller.dart';
-import 'package:gemini/home_states.dart';
-import 'package:gemini/image_controller.dart';
+import 'package:gemini/states/home_states.dart';
+import 'package:gemini/image_store.dart';
+import 'package:gemini/request_store.dart';
+import 'package:gemini/states/image_states.dart';
 import 'package:google_generative_ai/google_generative_ai.dart';
 import 'package:image_picker/image_picker.dart';
 
@@ -13,16 +15,14 @@ class HomePage extends StatefulWidget {
 }
 
 class _HomePageState extends State<HomePage> {
-  late final textController = TextEditingController();
-
   late final model = GenerativeModel(
     model: 'gemini-1.5-flash',
     apiKey: const String.fromEnvironment('API_KEY'),
   );
   late final imagePicker = ImagePicker();
 
-  late final homeController = HomeController(model);
-  late final imageController = ImageController(imagePicker);
+  late final homeController =
+      HomeController(RequestStore(model), ImageStore(imagePicker));
 
   @override
   Widget build(BuildContext context) {
@@ -33,34 +33,38 @@ class _HomePageState extends State<HomePage> {
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              TextField(controller: textController),
+              TextField(controller: homeController.textController),
               const SizedBox(height: 10),
               TextButton(
-                onPressed: () =>
-                    homeController.enviarTexto(textController.text),
+                onPressed: homeController.enviarTexto,
                 child: const Text('Enviar texto'),
               ),
               const SizedBox(height: 10),
               TextButton(
-                onPressed: imageController.escolherImagens,
+                onPressed: homeController.escolherImagens,
                 child: const Text('Escolher imagens'),
               ),
               const SizedBox(height: 10),
               ValueListenableBuilder(
-                valueListenable: imageController,
-                builder: (context, value, child) => Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: value.map((e) {
-                    return Image.memory(e, height: 200, fit: BoxFit.fitHeight);
-                  }).toList(),
-                ),
+                valueListenable: homeController.imageStore,
+                builder: (context, value, child) {
+                  return switch (value) {
+                    ImageSuccessState success => Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: success.imageList
+                            .map((e) => Image.memory(e,
+                                height: 200, fit: BoxFit.fitHeight))
+                            .toList(),
+                      ),
+                    ImageLoadingState _ => const CircularProgressIndicator(),
+                    ImageInitialState _ => const SizedBox.shrink(),
+                    ImageErrorState error => Text(error.message),
+                  };
+                },
               ),
               const SizedBox(height: 10),
               TextButton(
-                onPressed: () => homeController.enviarImagens(
-                  textController.text,
-                  imageController.value,
-                ),
+                onPressed: homeController.enviarImagens,
                 child: const Text('Enviar imagens'),
               ),
               const SizedBox(height: 10),

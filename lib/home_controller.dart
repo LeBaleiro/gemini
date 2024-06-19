@@ -1,34 +1,44 @@
-import 'dart:typed_data';
-
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:gemini/home_states.dart';
-import 'package:google_generative_ai/google_generative_ai.dart';
+import 'package:gemini/image_store.dart';
+import 'package:gemini/request_store.dart';
+import 'package:gemini/states/home_states.dart';
+import 'package:gemini/states/image_states.dart';
 
 class HomeController extends ValueNotifier<HomeState> {
-  HomeController(this.model) : super(HomeInitialState());
+  HomeController(this._requestStore, this._imageStore)
+      : super(HomeInitialState());
 
-  final GenerativeModel model;
+  final RequestStore _requestStore;
+  final ImageStore _imageStore;
+  ValueListenable<ImageState> get imageStore => _imageStore;
 
-  Future<void> enviarTexto(String text) async {
-    final content = [Content.text(text)];
+  late final textController = TextEditingController();
+
+  Future<void> escolherImagens() async => await _imageStore.escolherImagens();
+
+  Future<void> enviarTexto() async {
     value = HomeLoadingState();
     try {
-      final response = await model.generateContent(content);
-      value = HomeSuccessState(response.text);
+      await _requestStore.enviarTexto(textController.text);
+      value = HomeSuccessState(_requestStore.value);
     } catch (e) {
       value = HomeErrorState(e.toString());
     }
   }
 
-  Future<void> enviarImagens(String text, List<Uint8List> imagens) async {
-    final prompt = TextPart(text);
-    final imageParts = imagens.map((e) => DataPart('image/png', e));
+  Future<void> enviarImagens() async {
     value = HomeLoadingState();
+    if (_imageStore.value is! ImageSuccessState) {
+      value = HomeErrorState('Imagem não selecionada');
+      return;
+    }
     try {
-      final response = await model.generateContent([
-        Content.multi([prompt, ...imageParts])
-      ]);
-      value = HomeSuccessState(response.text);
+      await _requestStore.enviarImagens(
+        textController.text,
+        (_imageStore.value as ImageSuccessState).imageList,
+      );
+      value = HomeSuccessState(_requestStore.value);
     } catch (e) {
       value = HomeErrorState(e.toString());
     }
