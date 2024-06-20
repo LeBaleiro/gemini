@@ -1,15 +1,15 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:gemini/image_store.dart';
-import 'package:gemini/request_store.dart';
+import 'package:gemini/stores/image_store.dart';
+import 'package:gemini/services/gemini_service.dart';
 import 'package:gemini/states/home_states.dart';
 import 'package:gemini/states/image_states.dart';
 
 class HomeController extends ValueNotifier<HomeState> {
-  HomeController(this._requestStore, this._imageStore)
+  HomeController(this._geminiService, this._imageStore)
       : super(HomeInitialState());
 
-  final RequestStore _requestStore;
+  final GeminiService _geminiService;
   final ImageStore _imageStore;
   ValueListenable<ImageState> get imageStore => _imageStore;
 
@@ -20,8 +20,12 @@ class HomeController extends ValueNotifier<HomeState> {
   Future<void> enviarTexto() async {
     value = HomeLoadingState();
     try {
-      await _requestStore.enviarTexto(textController.text);
-      value = HomeSuccessState(_requestStore.value);
+      final response = await _geminiService.enviarTexto(textController.text);
+      if (response == null || response.isEmpty) {
+        value = HomeErrorState('Sem resposta');
+        return;
+      }
+      value = HomeSuccessState(response);
     } catch (e) {
       value = HomeErrorState(e.toString());
     }
@@ -34,11 +38,15 @@ class HomeController extends ValueNotifier<HomeState> {
       return;
     }
     try {
-      await _requestStore.enviarImagens(
+      final response = await _geminiService.enviarImagens(
         textController.text,
         (_imageStore.value as ImageSuccessState).imageList,
       );
-      value = HomeSuccessState(_requestStore.value);
+      if (response == null || response.isEmpty) {
+        value = HomeErrorState('Sem resposta');
+        return;
+      }
+      value = HomeSuccessState(response);
     } catch (e) {
       value = HomeErrorState(e.toString());
     }

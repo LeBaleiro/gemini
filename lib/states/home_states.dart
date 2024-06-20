@@ -11,7 +11,7 @@ class HomeErrorState extends HomeState {
 class HomeLoadingState extends HomeState {}
 
 class HomeSuccessState extends HomeState {
-  final String? response;
+  final String response;
 
   HomeSuccessState(this.response);
 }

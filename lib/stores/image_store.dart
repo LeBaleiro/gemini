@@ -17,7 +17,6 @@ class ImageStore extends ValueNotifier<ImageState> {
       value = ImageSuccessState(uint8List);
     } catch (e) {
       value = ImageErrorState(e.toString());
-      rethrow;
     }
   }
 
