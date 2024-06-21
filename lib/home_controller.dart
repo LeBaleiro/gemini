@@ -8,38 +8,40 @@ import 'package:gemini/stores/image_store.dart';
 import 'package:gemini/stores/request_store.dart';
 
 class HomeController {
-  HomeController(this._requestStore, this._imageStore);
+  HomeController(this._$requestStore, this._$imageStore);
 
-  final RequestStore _requestStore;
-  final ImageStore _imageStore;
-  ValueListenable<RequestState> get requestStore => _requestStore;
-  ValueListenable<ImageState> get imageStore => _imageStore;
+  final RequestStore _$requestStore;
+  final ImageStore _$imageStore;
+  ValueListenable<RequestState> get $requestStore => _$requestStore;
+  ValueListenable<ImageState> get $imageStore => _$imageStore;
 
-  late final textController = TextEditingController();
+  late final $textController = TextEditingController();
 
-  late final envioDeImagensHabilitado = ComputedNotifier<bool>(
-      compute: () {
-        final imagensSelecionadas = _imageStore.value is ImageSuccessState;
-        return imagensSelecionadas && envioTextHabilitado.value;
-      },
-      valueListenables: [envioTextHabilitado, _imageStore]);
-
-  late final envioTextHabilitado = ComputedNotifier<bool>(
+  late final $envioDeImagensHabilitado = ComputedNotifier<bool>(
+    valueListenables: [$envioTextHabilitado, _$imageStore],
     compute: () {
-      final requestEmProgresso = _requestStore.value is RequestLoadingState;
-      return textController.value.text.isNotEmpty && !requestEmProgresso;
+      final imagensSelecionadas = _$imageStore.value is ImageSuccessState;
+      return imagensSelecionadas && $envioTextHabilitado.value;
     },
-    valueListenables: [_requestStore, textController],
   );
 
-  Future<void> escolherImagens() => _imageStore.escolherImagens();
+  late final $envioTextHabilitado = ComputedNotifier<bool>(
+    valueListenables: [_$requestStore, $textController],
+    compute: () {
+      final requestEmProgresso = _$requestStore.value is RequestLoadingState;
+      return $textController.value.text.isNotEmpty && !requestEmProgresso;
+    },
+  );
 
-  Future<void> enviarTexto() => _requestStore.enviarTexto(textController.text);
+  Future<void> escolherImagens() => _$imageStore.escolherImagens();
+
+  Future<void> enviarTexto() =>
+      _$requestStore.enviarTexto($textController.text);
 
   Future<void> enviarImagens() async {
-    if (_imageStore.value case ImageSuccessState successImage) {
-      return _requestStore.enviarImagens(
-        textController.text,
+    if (_$imageStore.value case ImageSuccessState successImage) {
+      return _$requestStore.enviarImagens(
+        $textController.text,
         successImage.imageList,
       );
     }

@@ -38,10 +38,10 @@ class _HomePageState extends State<HomePage> {
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              TextField(controller: homeController.textController),
+              TextField(controller: homeController.$textController),
               const SizedBox(height: 10),
               ValueListenableBuilder(
-                valueListenable: homeController.envioTextHabilitado,
+                valueListenable: homeController.$envioTextHabilitado,
                 builder: (context, value, child) => CustomButton(
                   onTap: homeController.enviarTexto,
                   label: 'Enviar texto',
@@ -50,7 +50,7 @@ class _HomePageState extends State<HomePage> {
               ),
               const SizedBox(height: 10),
               ValueListenableBuilder<ImageState>(
-                valueListenable: homeController.imageStore,
+                valueListenable: homeController.$imageStore,
                 builder: (context, value, child) => CustomButton(
                   onTap: homeController.escolherImagens,
                   label: 'Escolher imagens',
@@ -59,7 +59,7 @@ class _HomePageState extends State<HomePage> {
               ),
               const SizedBox(height: 10),
               ValueListenableBuilder<ImageState>(
-                valueListenable: homeController.imageStore,
+                valueListenable: homeController.$imageStore,
                 builder: (context, value, child) {
                   return switch (value) {
                     ImageSuccessState success => ImageList(success.imageList),
@@ -71,7 +71,7 @@ class _HomePageState extends State<HomePage> {
               ),
               const SizedBox(height: 10),
               ValueListenableBuilder(
-                valueListenable: homeController.envioDeImagensHabilitado,
+                valueListenable: homeController.$envioDeImagensHabilitado,
                 builder: (context, value, child) => CustomButton(
                   onTap: homeController.enviarImagens,
                   label: 'Enviar imagens',
@@ -80,7 +80,7 @@ class _HomePageState extends State<HomePage> {
               ),
               const SizedBox(height: 10),
               ValueListenableBuilder<RequestState>(
-                valueListenable: homeController.requestStore,
+                valueListenable: homeController.$requestStore,
                 builder: (context, value, child) {
                   return switch (value) {
                     RequestSuccessState success => Text(success.response),
