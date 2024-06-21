@@ -17,7 +17,7 @@ class HomeController {
 
   late final $textController = TextEditingController();
 
-  late final $envioDeImagensHabilitado = ComputedNotifier<bool>(
+  late final $envioDeImagensHabilitado = MultiNotifier<bool>(
     valueListenables: [$envioTextHabilitado, _$imageStore],
     compute: () {
       final imagensSelecionadas = _$imageStore.value is ImageSuccessState;
@@ -25,7 +25,7 @@ class HomeController {
     },
   );
 
-  late final $envioTextHabilitado = ComputedNotifier<bool>(
+  late final $envioTextHabilitado = MultiNotifier<bool>(
     valueListenables: [_$requestStore, $textController],
     compute: () {
       final requestEmProgresso = _$requestStore.value is RequestLoadingState;

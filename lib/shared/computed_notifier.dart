@@ -1,9 +1,9 @@
 import 'package:flutter/foundation.dart';
 
-class ComputedNotifier<TResponse> extends ValueListenable<TResponse> {
+class MultiNotifier<TResponse> extends ValueListenable<TResponse> {
   final Listenable _listenable;
   final TResponse Function() _compute;
-  ComputedNotifier({
+  MultiNotifier({
     required List<ValueListenable> valueListenables,
     required TResponse Function() compute,
   })  : _compute = compute,
@@ -13,7 +13,8 @@ class ComputedNotifier<TResponse> extends ValueListenable<TResponse> {
   void addListener(VoidCallback listener) => _listenable.addListener(listener);
 
   @override
-  void removeListener(VoidCallback listener) => _listenable.removeListener(listener);
+  void removeListener(VoidCallback listener) =>
+      _listenable.removeListener(listener);
 
   @override
   TResponse get value => _compute();
