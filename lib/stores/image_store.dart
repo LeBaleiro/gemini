@@ -11,6 +11,7 @@ class ImageStore extends ValueNotifier<ImageState> {
 
   Future<void> escolherImagens() async {
     value = ImageLoadingState();
+    await Future.delayed(const Duration(seconds: 2));
     try {
       final result = await imagePicker.pickMultiImage();
       final uint8List = await converterParaUint8(result);

@@ -1,9 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:gemini/home_controller.dart';
-import 'package:gemini/states/home_states.dart';
+import 'package:gemini/states/request_states.dart';
 import 'package:gemini/stores/image_store.dart';
 import 'package:gemini/services/gemini_service.dart';
 import 'package:gemini/states/image_states.dart';
+import 'package:gemini/stores/request_store.dart';
 import 'package:gemini/widgets/custom_button.dart';
 import 'package:gemini/widgets/image_list.dart';
 import 'package:google_generative_ai/google_generative_ai.dart';
@@ -24,7 +25,7 @@ class _HomePageState extends State<HomePage> {
   late final imagePicker = ImagePicker();
 
   late final homeController = HomeController(
-    GeminiService(model),
+    RequestStore(GeminiService(model)),
     ImageStore(imagePicker),
   );
 
@@ -39,12 +40,12 @@ class _HomePageState extends State<HomePage> {
             children: [
               TextField(controller: homeController.textController),
               const SizedBox(height: 10),
-              ValueListenableBuilder<HomeState>(
-                valueListenable: homeController,
-                builder: (context, value, child) => CustomButton(
+              AnimatedBuilder(
+                animation: homeController.requestTextMerged,
+                builder: (context, child) => CustomButton(
                   onTap: homeController.enviarTexto,
                   label: 'Enviar texto',
-                  desabilitado: value is HomeLoadingState,
+                  desabilitado: !homeController.envioTextHabilitado,
                 ),
               ),
               const SizedBox(height: 10),
@@ -69,23 +70,23 @@ class _HomePageState extends State<HomePage> {
                 },
               ),
               const SizedBox(height: 10),
-              ValueListenableBuilder<HomeState>(
-                valueListenable: homeController,
-                builder: (context, value, child) => CustomButton(
+              AnimatedBuilder(
+                animation: homeController.requestTextImageMerged,
+                builder: (context, child) => CustomButton(
                   onTap: homeController.enviarImagens,
                   label: 'Enviar imagens',
-                  desabilitado: value is HomeLoadingState,
+                  desabilitado: !homeController.envioDeImagensHabilitado,
                 ),
               ),
               const SizedBox(height: 10),
-              ValueListenableBuilder<HomeState>(
-                valueListenable: homeController,
+              ValueListenableBuilder<RequestState>(
+                valueListenable: homeController.requestStore,
                 builder: (context, value, child) {
                   return switch (value) {
-                    HomeSuccessState success => Text(success.response),
-                    HomeErrorState error => Text(error.message),
-                    HomeLoadingState _ => const CircularProgressIndicator(),
-                    HomeInitialState _ => const SizedBox.shrink(),
+                    RequestSuccessState success => Text(success.response),
+                    RequestErrorState error => Text(error.message),
+                    RequestLoadingState _ => const CircularProgressIndicator(),
+                    RequestInitialState _ => const SizedBox.shrink(),
                   };
                 },
               ),
