@@ -14,10 +14,10 @@ class HomeController {
   ValueListenable<RequestState> get requestStore => _requestStore;
   ValueListenable<ImageState> get imageStore => _imageStore;
 
-  Listenable get requestTextImageMerged =>
+  late final Listenable requestTextImageMerged =
       Listenable.merge([_requestStore, _imageStore, textController]);
 
-  Listenable get requestTextMerged =>
+  late final Listenable requestTextMerged =
       Listenable.merge([_requestStore, textController]);
 
   late final textController = TextEditingController();
@@ -36,8 +36,12 @@ class HomeController {
 
   Future<void> enviarTexto() => _requestStore.enviarTexto(textController.text);
 
-  Future<void> enviarImagens() => _requestStore.enviarImagens(
+  Future<void> enviarImagens() async {
+    if (_imageStore.value case ImageSuccessState successImage) {
+      return _requestStore.enviarImagens(
         textController.text,
-        (_imageStore.value as ImageSuccessState).imageList,
+        successImage.imageList,
       );
+    }
+  }
 }
