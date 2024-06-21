@@ -1,6 +1,7 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
+import 'package:gemini/shared/computed_notifier.dart';
 import 'package:gemini/states/image_states.dart';
 import 'package:gemini/states/request_states.dart';
 import 'package:gemini/stores/image_store.dart';
@@ -14,23 +15,22 @@ class HomeController {
   ValueListenable<RequestState> get requestStore => _requestStore;
   ValueListenable<ImageState> get imageStore => _imageStore;
 
-  late final Listenable requestTextImageMerged =
-      Listenable.merge([_requestStore, _imageStore, textController]);
-
-  late final Listenable requestTextMerged =
-      Listenable.merge([_requestStore, textController]);
-
   late final textController = TextEditingController();
 
-  bool get imagensSelecionadas => _imageStore.value is ImageSuccessState;
+  late final envioDeImagensHabilitado = ComputedNotifier<bool>(
+      compute: () {
+        final imagensSelecionadas = _imageStore.value is ImageSuccessState;
+        return imagensSelecionadas && envioTextHabilitado.value;
+      },
+      valueListenables: [envioTextHabilitado, _imageStore]);
 
-  bool get requestEmProgresso => _requestStore.value is RequestLoadingState;
-
-  bool get envioDeImagensHabilitado =>
-      imagensSelecionadas && envioTextHabilitado;
-
-  bool get envioTextHabilitado =>
-      textController.value.text.isNotEmpty && !requestEmProgresso;
+  late final envioTextHabilitado = ComputedNotifier<bool>(
+    compute: () {
+      final requestEmProgresso = _requestStore.value is RequestLoadingState;
+      return textController.value.text.isNotEmpty && !requestEmProgresso;
+    },
+    valueListenables: [_requestStore, textController],
+  );
 
   Future<void> escolherImagens() => _imageStore.escolherImagens();
 

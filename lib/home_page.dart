@@ -40,12 +40,12 @@ class _HomePageState extends State<HomePage> {
             children: [
               TextField(controller: homeController.textController),
               const SizedBox(height: 10),
-              AnimatedBuilder(
-                animation: homeController.requestTextMerged,
-                builder: (context, child) => CustomButton(
+              ValueListenableBuilder(
+                valueListenable: homeController.envioTextHabilitado,
+                builder: (context, value, child) => CustomButton(
                   onTap: homeController.enviarTexto,
                   label: 'Enviar texto',
-                  desabilitado: !homeController.envioTextHabilitado,
+                  desabilitado: !value,
                 ),
               ),
               const SizedBox(height: 10),
@@ -70,12 +70,12 @@ class _HomePageState extends State<HomePage> {
                 },
               ),
               const SizedBox(height: 10),
-              AnimatedBuilder(
-                animation: homeController.requestTextImageMerged,
-                builder: (context, child) => CustomButton(
+              ValueListenableBuilder(
+                valueListenable: homeController.envioDeImagensHabilitado,
+                builder: (context, value, child) => CustomButton(
                   onTap: homeController.enviarImagens,
                   label: 'Enviar imagens',
-                  desabilitado: !homeController.envioDeImagensHabilitado,
+                  desabilitado: !value,
                 ),
               ),
               const SizedBox(height: 10),
