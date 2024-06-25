@@ -14,6 +14,7 @@ dependencies:
   cupertino_icons: ^1.0.6
   image_picker: ^1.1.2
   google_generative_ai: ^0.4.3
+  value_selectable: ^1.1.1
 
 dev_dependencies:
   flutter_test:
