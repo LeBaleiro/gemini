@@ -1,6 +1,10 @@
-import 'dart:io';
-
 import 'package:flutter/material.dart';
+import 'package:gemini/home_controller.dart';
+import 'package:gemini/stores/request_store.dart';
+import 'package:gemini/stores/imagem_store.dart';
+import 'package:gemini/stores/states/imagem_states.dart';
+import 'package:gemini/stores/states/request_state.dart';
+import 'package:gemini/widgets/image_list.dart';
 import 'package:google_generative_ai/google_generative_ai.dart';
 import 'package:image_picker/image_picker.dart';
 
@@ -14,38 +18,15 @@ class HomePage extends StatefulWidget {
 class _HomePageState extends State<HomePage> {
   String? modelResponse;
 
-  late final controller = TextEditingController();
-
-  late final imagePicker = ImagePicker();
-  List<XFile>? imagens;
-
-  Future<void> escolherImagens() async {
-    final result = await imagePicker.pickMultiImage();
-    setState(() => imagens = result);
-  }
-
-  late final model = GenerativeModel(
+  late final modelo = GenerativeModel(
     model: 'gemini-1.5-flash',
     apiKey: const String.fromEnvironment('API_KEY'),
   );
 
-  Future<void> enviarTexto(String text) async {
-    final content = [Content.text(text)];
-    final response = await model.generateContent(content);
-    setState(() => modelResponse = response.text);
-  }
+  late final imagePicker = ImagePicker();
 
-  Future<void> enviarImagens(String text) async {
-    final prompt = TextPart(text);
-    if (imagens == null) return;
-    final fileImages =
-        await imagens!.map((e) => File(e.path).readAsBytes()).wait;
-    final imageParts = fileImages.map((e) => DataPart('image/png', e));
-    final response = await model.generateContent([
-      Content.multi([prompt, ...imageParts])
-    ]);
-    setState(() => modelResponse = response.text);
-  }
+  late final homeController =
+      HomeController(RequestStore(modelo), ImagemStore(imagePicker));
 
   @override
   Widget build(BuildContext context) {
@@ -56,38 +37,61 @@ class _HomePageState extends State<HomePage> {
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              TextField(controller: controller),
+              TextField(controller: homeController.$textController),
               const SizedBox(height: 10),
-              TextButton(
-                onPressed: () => enviarTexto(controller.text),
-                child: const Text('Enviar texto'),
+              ValueListenableBuilder(
+                valueListenable: homeController.$envioTextoDesabilitado,
+                builder: (context, value, child) {
+                  return TextButton(
+                    onPressed: value ? null : homeController.enviarTexto,
+                    child: const Text('Enviar texto'),
+                  );
+                },
               ),
               const SizedBox(height: 10),
-              TextButton(
-                onPressed: escolherImagens,
-                child: const Text('Escolher imagens'),
+              ValueListenableBuilder(
+                  valueListenable: homeController.$selecaoDeImagemDesabilitado,
+                  builder: (context, value, child) {
+                    return TextButton(
+                      onPressed: value ? null : homeController.escolherImagens,
+                      child: const Text('Escolher imagens'),
+                    );
+                  }),
+              const SizedBox(height: 10),
+              ValueListenableBuilder(
+                valueListenable: homeController.$imagemStore,
+                builder: (context, value, child) {
+                  return switch (value) {
+                    ImagemStateSuccess success =>
+                      ImageList(imagens: success.imagens),
+                    ImagemStateError error => Text(error.mensagem),
+                    ImagemStateInitial _ => const SizedBox.shrink(),
+                    ImagemStateLoading _ => const CircularProgressIndicator(),
+                  };
+                },
               ),
               const SizedBox(height: 10),
-              if (imagens != null)
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: imagens!
-                      .map(
-                        (e) => Image.file(
-                          File(e.path),
-                          height: 200,
-                          fit: BoxFit.fitHeight,
-                        ),
-                      )
-                      .toList(),
-                ),
-              const SizedBox(height: 10),
-              TextButton(
-                onPressed: () => enviarImagens(controller.text),
-                child: const Text('Enviar imagens'),
+              ValueListenableBuilder(
+                valueListenable: homeController.$envioImagensDesabilitado,
+                builder: (context, value, child) {
+                  return TextButton(
+                    onPressed: value ? null : homeController.enviarImagens,
+                    child: const Text('Enviar imagens'),
+                  );
+                },
               ),
               const SizedBox(height: 10),
-              Text(modelResponse ?? 'Sem resposta'),
+              ValueListenableBuilder(
+                valueListenable: homeController.$requestStore,
+                builder: (context, value, child) {
+                  return switch (value) {
+                    RequestStateSuccess success => Text(success.respostaGemini),
+                    RequestStateError error => Text(error.mensagem),
+                    RequestStateInitial _ => const SizedBox.shrink(),
+                    RequestStateLoading _ => const CircularProgressIndicator(),
+                  };
+                },
+              ),
             ],
           ),
         ),
