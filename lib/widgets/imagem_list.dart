@@ -3,9 +3,8 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 
-class ImageList extends StatelessWidget {
-  const ImageList({super.key, required this.imagens});
-
+class ImagemList extends StatelessWidget {
+  const ImagemList({super.key, required this.imagens});
   final List<XFile> imagens;
 
   @override
@@ -19,6 +18,7 @@ class ImageList extends StatelessWidget {
               child: Image.file(
                 File(e.path),
                 height: 200,
+                width: 150,
                 fit: BoxFit.fitHeight,
               ),
             ),

@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:gemini/widgets/imagem_list.dart';
 import 'package:gemini/home_controller.dart';
 import 'package:gemini/stores/request_store.dart';
 import 'package:gemini/stores/imagem_store.dart';
 import 'package:gemini/stores/states/imagem_states.dart';
 import 'package:gemini/stores/states/request_state.dart';
-import 'package:gemini/widgets/image_list.dart';
 import 'package:google_generative_ai/google_generative_ai.dart';
 import 'package:image_picker/image_picker.dart';
 
@@ -63,7 +63,7 @@ class _HomePageState extends State<HomePage> {
                 builder: (context, value, child) {
                   return switch (value) {
                     ImagemStateSuccess success =>
-                      ImageList(imagens: success.imagens),
+                      ImagemList(imagens: success.imagens),
                     ImagemStateError error => Text(error.mensagem),
                     ImagemStateInitial _ => const SizedBox.shrink(),
                     ImagemStateLoading _ => const CircularProgressIndicator(),
