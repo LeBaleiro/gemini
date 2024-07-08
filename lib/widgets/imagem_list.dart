@@ -1,11 +1,10 @@
-import 'dart:io';
+import 'dart:typed_data';
 
 import 'package:flutter/material.dart';
-import 'package:image_picker/image_picker.dart';
 
 class ImagemList extends StatelessWidget {
   const ImagemList({super.key, required this.imagens});
-  final List<XFile> imagens;
+  final List<Uint8List> imagens;
 
   @override
   Widget build(BuildContext context) {
@@ -15,8 +14,8 @@ class ImagemList extends StatelessWidget {
           .map(
             (e) => Padding(
               padding: const EdgeInsets.all(5.0),
-              child: Image.file(
-                File(e.path),
+              child: Image.memory(
+                e,
                 height: 200,
                 width: 150,
                 fit: BoxFit.fitHeight,

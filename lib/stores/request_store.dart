@@ -1,9 +1,8 @@
-import 'dart:io';
+import 'dart:typed_data';
 
 import 'package:flutter/material.dart';
 import 'package:gemini/stores/states/request_state.dart';
 import 'package:google_generative_ai/google_generative_ai.dart';
-import 'package:image_picker/image_picker.dart';
 
 class RequestStore extends ValueNotifier<RequestState> {
   RequestStore(this._modelo) : super(RequestStateInitial());
@@ -25,13 +24,11 @@ class RequestStore extends ValueNotifier<RequestState> {
     }
   }
 
-  Future<void> enviarImagens(String text, List<XFile> imagens) async {
+  Future<void> enviarImagens(String text, List<Uint8List> imagens) async {
     value = RequestStateLoading();
     final prompt = TextPart(text);
     try {
-      final fileImages =
-          await imagens.map((e) => File(e.path).readAsBytes()).wait;
-      final imageParts = fileImages.map((e) => DataPart('image/png', e));
+      final imageParts = imagens.map((e) => DataPart('image/png', e));
       final response = await _modelo.generateContent([
         Content.multi([prompt, ...imageParts])
       ]);

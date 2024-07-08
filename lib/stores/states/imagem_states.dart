@@ -1,4 +1,4 @@
-import 'package:image_picker/image_picker.dart';
+import 'dart:typed_data';
 
 sealed class ImagemState {}
 
@@ -11,7 +11,7 @@ class ImagemStateError extends ImagemState {
 }
 
 class ImagemStateSuccess extends ImagemState {
-  final List<XFile> imagens;
+  final List<Uint8List> imagens;
 
   ImagemStateSuccess(this.imagens);
 }
